@@ -43,7 +43,7 @@ func newGame() *Game {
 
 	return &Game{
 		loader: loader,
-		ui:     newUI(),
+		ui:     newUI(loader),
 	}
 }
 
