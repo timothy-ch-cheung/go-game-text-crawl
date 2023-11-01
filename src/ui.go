@@ -1,6 +1,8 @@
 package main
 
 import (
+	img "image"
+
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
@@ -20,7 +22,7 @@ func loadImageNineSlice(img *ebiten.Image, centerWidth int, centerHeight int) *i
 	)
 }
 
-func NewBtn(icon resource.ImageID, loader *resource.Loader) *widget.Button {
+func NewBtn(icon resource.ImageID, loader *resource.Loader, handler *widget.ButtonClickedHandlerFunc) *widget.Button {
 	idle := loadImageNineSlice(loader.LoadImage(assets.ImgBtnIdle).Data, BTN_SIZE, BTN_SIZE)
 	hover := loadImageNineSlice(loader.LoadImage(assets.ImgBtnHover).Data, BTN_SIZE, BTN_SIZE)
 	pressed := loadImageNineSlice(loader.LoadImage(assets.ImgBtnPressed).Data, BTN_SIZE, BTN_SIZE)
@@ -33,12 +35,15 @@ func NewBtn(icon resource.ImageID, loader *resource.Loader) *widget.Button {
 			Pressed: pressed,
 		}),
 		widget.ButtonOpts.Graphic(btnIcon),
+		widget.ButtonOpts.ClickedHandler(*handler),
 	)
 	button.GraphicImage = &widget.ButtonImageImage{Idle: btnIcon}
 	return button
 }
 
 func newUI(loader *resource.Loader) *ebitenui.UI {
+	ui := &ebitenui.UI{}
+
 	rootContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Padding(widget.Insets{
 			Bottom: 5,
@@ -48,10 +53,31 @@ func newUI(loader *resource.Loader) *ebitenui.UI {
 		}), widget.RowLayoutOpts.Spacing(442))),
 	)
 
-	rootContainer.AddChild(NewBtn(assets.ImgIconMenu, loader))
-	rootContainer.AddChild(NewBtn(assets.ImgIconRestart, loader))
+	windowContainer := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(loadImageNineSlice(loader.LoadImage(assets.ImgFrame).Data, 16, 16)),
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+	)
+	window := widget.NewWindow(
+		widget.WindowOpts.Contents(windowContainer),
+		widget.WindowOpts.Modal(),
+		widget.WindowOpts.CloseMode(widget.CLICK_OUT),
+		widget.WindowOpts.MinSize(400, 220),
+		widget.WindowOpts.MaxSize(400, 220),
+	)
 
-	return &ebitenui.UI{
-		Container: rootContainer,
+	var menuHandler widget.ButtonClickedHandlerFunc = func(args *widget.ButtonClickedEventArgs) {
+		r := img.Rect(0, 0, 400, 220)
+		r = r.Add(img.Point{56, 34})
+		window.SetLocation(r)
+		ui.AddWindow(window)
 	}
+	rootContainer.AddChild(NewBtn(assets.ImgIconMenu, loader, &menuHandler))
+
+	var restartHandler widget.ButtonClickedHandlerFunc = func(args *widget.ButtonClickedEventArgs) {
+
+	}
+	rootContainer.AddChild(NewBtn(assets.ImgIconRestart, loader, &restartHandler))
+
+	ui.Container = rootContainer
+	return ui
 }
