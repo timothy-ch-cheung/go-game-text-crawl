@@ -40,6 +40,7 @@ func newGame() *Game {
 	loader := resource.NewLoader(audioContext)
 	loader.OpenAssetFunc = assets.OpenAssetFunc
 	assets.RegisterImageResources(loader)
+	assets.RegisterFontResources(loader)
 
 	return &Game{
 		loader: loader,

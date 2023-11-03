@@ -2,6 +2,7 @@ package main
 
 import (
 	img "image"
+	"image/color"
 
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
@@ -53,17 +54,7 @@ func newUI(loader *resource.Loader) *ebitenui.UI {
 		}), widget.RowLayoutOpts.Spacing(442))),
 	)
 
-	windowContainer := widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(loadImageNineSlice(loader.LoadImage(assets.ImgFrame).Data, 16, 16)),
-		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
-	)
-	window := widget.NewWindow(
-		widget.WindowOpts.Contents(windowContainer),
-		widget.WindowOpts.Modal(),
-		widget.WindowOpts.CloseMode(widget.CLICK_OUT),
-		widget.WindowOpts.MinSize(400, 220),
-		widget.WindowOpts.MaxSize(400, 220),
-	)
+	window := newSettingWindow(loader)
 
 	var menuHandler widget.ButtonClickedHandlerFunc = func(args *widget.ButtonClickedEventArgs) {
 		r := img.Rect(0, 0, 400, 220)
@@ -80,4 +71,50 @@ func newUI(loader *resource.Loader) *ebitenui.UI {
 
 	ui.Container = rootContainer
 	return ui
+}
+
+func newSettingWindow(loader *resource.Loader) *widget.Window {
+	windowContainer := widget.NewContainer(
+		widget.ContainerOpts.BackgroundImage(loadImageNineSlice(loader.LoadImage(assets.ImgFrame).Data, 16, 16)),
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(10)),
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+			widget.RowLayoutOpts.Spacing(5),
+		)),
+	)
+	window := widget.NewWindow(
+		widget.WindowOpts.Contents(windowContainer),
+		widget.WindowOpts.Modal(),
+		widget.WindowOpts.CloseMode(widget.NONE),
+		widget.WindowOpts.MinSize(400, 220),
+		widget.WindowOpts.MaxSize(400, 220),
+	)
+
+	textInput := widget.NewTextInput(
+		widget.TextInputOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+				Position: widget.RowLayoutPositionCenter,
+				Stretch:  true,
+			}),
+		),
+		widget.TextInputOpts.Padding(widget.NewInsetsSimple(5)),
+		widget.TextInputOpts.Image(&widget.TextInputImage{Idle: loadImageNineSlice(loader.LoadImage(assets.ImgInput).Data, 16, 16)}),
+		widget.TextInputOpts.Face(loader.LoadFont(assets.FontDefault).Face),
+		widget.TextInputOpts.Color(&widget.TextInputColor{
+			Idle:  color.NRGBA{254, 255, 255, 255},
+			Caret: color.NRGBA{254, 255, 255, 255},
+		}),
+		widget.TextInputOpts.CaretOpts(
+			widget.CaretOpts.Size(loader.LoadFont(assets.FontDefault).Face, 2),
+		),
+	)
+	windowContainer.AddChild(textInput)
+
+	var submitHandler widget.ButtonClickedHandlerFunc = func(args *widget.ButtonClickedEventArgs) {
+		window.Close()
+	}
+
+	windowContainer.AddChild(NewBtn(assets.ImgIconSubmit, loader, &submitHandler))
+
+	return window
 }

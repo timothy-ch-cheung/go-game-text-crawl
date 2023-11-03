@@ -17,7 +17,9 @@ const (
 	ImgBtnPressed
 	ImgIconMenu
 	ImgIconRestart
+	ImgIconSubmit
 	ImgFrame
+	ImgInput
 )
 
 func RegisterImageResources(loader *resource.Loader) {
@@ -28,12 +30,29 @@ func RegisterImageResources(loader *resource.Loader) {
 		ImgBtnPressed:  {Path: "ui/btn-pressed.png"},
 		ImgIconMenu:    {Path: "ui/menu-icon.png"},
 		ImgIconRestart: {Path: "ui/restart-icon.png"},
+		ImgIconSubmit:  {Path: "ui/submit-icon.png"},
 		ImgFrame:       {Path: "ui/frame.png"},
+		ImgInput:       {Path: "ui/input.png"},
 	}
 
 	for id, res := range imageResources {
 		loader.ImageRegistry.Set(id, res)
 		loader.LoadImage(id)
+	}
+}
+
+const (
+	FontNone resource.FontID = iota
+	FontDefault
+)
+
+func RegisterFontResources(loader *resource.Loader) {
+	fontResources := map[resource.FontID]resource.FontInfo{
+		FontDefault: {Path: "PrintChar21.ttf", Size: 6},
+	}
+	for id, res := range fontResources {
+		loader.FontRegistry.Set(id, res)
+		loader.LoadFont(id)
 	}
 }
 
