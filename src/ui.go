@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	img "image"
 	"image/color"
 
@@ -141,6 +142,59 @@ func newSettingWindow(loader *resource.Loader) *widget.Window {
 
 	windowContainer.AddChild(textarea)
 
+	sliderContainer := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(10))),
+		widget.ContainerOpts.AutoDisableChildren(),
+	)
+
+	sliderLabel := widget.NewLabel(
+		widget.LabelOpts.TextOpts(widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Position: widget.RowLayoutPositionCenter,
+		}))),
+		widget.LabelOpts.Text("Text Speed:", loader.LoadFont(assets.FontDefault).Face, &widget.LabelColor{Idle: color.Black}),
+	)
+	sliderContainer.AddChild(sliderLabel)
+
+	var sliderValue *widget.Label
+
+	slider := widget.NewSlider(
+		widget.SliderOpts.Direction(widget.DirectionHorizontal),
+		widget.SliderOpts.MinMax(1, 10),
+		widget.SliderOpts.Images(
+			&widget.SliderTrackImage{
+				Idle:  image.NewNineSliceColor(color.NRGBA{100, 120, 140, 255}),
+				Hover: image.NewNineSliceColor(color.NRGBA{100, 120, 140, 255}),
+			},
+			&widget.ButtonImage{
+				Idle:    image.NewNineSliceColor(color.NRGBA{50, 50, 50, 255}),
+				Hover:   image.NewNineSliceColor(color.NRGBA{80, 80, 80, 255}),
+				Pressed: image.NewNineSliceColor(color.NRGBA{70, 90, 120, 255}),
+			},
+		),
+		widget.SliderOpts.WidgetOpts(
+			widget.WidgetOpts.MinSize(200, 6),
+		),
+		widget.SliderOpts.FixedHandleSize(2),
+		widget.SliderOpts.TrackOffset(0),
+		widget.SliderOpts.PageSizeFunc(func() int {
+			return 1
+		}),
+		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
+			sliderValue.Label = fmt.Sprintf("%d", args.Current)
+		}),
+	)
+	slider.Current = 5
+	sliderContainer.AddChild(slider)
+
+	sliderValue = widget.NewLabel(
+		widget.LabelOpts.TextOpts(widget.TextOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+			Position: widget.RowLayoutPositionCenter,
+		}))),
+		widget.LabelOpts.Text(fmt.Sprintf("%d", slider.Current), loader.LoadFont(assets.FontDefault).Face, &widget.LabelColor{Idle: color.Black}),
+	)
+	sliderContainer.AddChild(sliderValue)
+
 	var submitHandler widget.ButtonClickedHandlerFunc = func(args *widget.ButtonClickedEventArgs) {
 		window.Close()
 	}
@@ -155,7 +209,16 @@ func newSettingWindow(loader *resource.Loader) *widget.Window {
 			widget.WidgetOpts.LayoutData(
 				widget.AnchorLayoutData{HorizontalPosition: widget.AnchorLayoutPositionEnd},
 			)))
-	windowContainer.AddChild(submitLayout)
+
+	bottomPanel := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Spacing(10),
+		)),
+		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{Stretch: true})),
+	)
+	bottomPanel.AddChild(sliderContainer)
+	bottomPanel.AddChild(submitLayout)
+	windowContainer.AddChild(bottomPanel)
 
 	return window
 }
