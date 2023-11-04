@@ -37,6 +37,7 @@ func NewBtn(icon resource.ImageID, loader *resource.Loader, handler *widget.Butt
 		}),
 		widget.ButtonOpts.Graphic(btnIcon),
 		widget.ButtonOpts.ClickedHandler(*handler),
+		widget.ButtonOpts.WidgetOpts(opts...),
 	)
 	button.GraphicImage = &widget.ButtonImageImage{Idle: btnIcon}
 	return button
@@ -101,12 +102,14 @@ func newSettingWindow(loader *resource.Loader) *widget.Window {
 		widget.TextInputOpts.Image(&widget.TextInputImage{Idle: loadImageNineSlice(loader.LoadImage(assets.ImgInput).Data, 16, 16)}),
 		widget.TextInputOpts.Face(loader.LoadFont(assets.FontDefault).Face),
 		widget.TextInputOpts.Color(&widget.TextInputColor{
-			Idle:  color.NRGBA{254, 255, 255, 255},
-			Caret: color.NRGBA{254, 255, 255, 255},
+			Idle:     color.NRGBA{254, 255, 255, 255},
+			Caret:    color.NRGBA{254, 255, 255, 255},
+			Disabled: color.NRGBA{125, 125, 125, 255},
 		}),
 		widget.TextInputOpts.CaretOpts(
 			widget.CaretOpts.Size(loader.LoadFont(assets.FontDefault).Face, 2),
 		),
+		widget.TextInputOpts.Placeholder("Click here to update dialog"),
 	)
 	windowContainer.AddChild(textInput)
 
@@ -117,15 +120,15 @@ func newSettingWindow(loader *resource.Loader) *widget.Window {
 					Position:  widget.RowLayoutPositionCenter,
 					MaxHeight: 150,
 				}),
-				widget.WidgetOpts.MinSize(375, 140),
+				widget.WidgetOpts.MinSize(380, 140),
 			),
 		),
 		widget.TextAreaOpts.FontColor(color.Black),
 		widget.TextAreaOpts.FontFace(loader.LoadFont(assets.FontDefault).Face),
 		widget.TextAreaOpts.ScrollContainerOpts(
 			widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
-				Idle: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
-				Mask: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+				Idle: loadImageNineSlice(loader.LoadImage(assets.ImgInput).Data, 16, 16),
+				Mask: loadImageNineSlice(loader.LoadImage(assets.ImgInput).Data, 16, 16),
 			}),
 		),
 		widget.TextAreaOpts.TextPadding(widget.NewInsetsSimple(5)),
@@ -142,8 +145,16 @@ func newSettingWindow(loader *resource.Loader) *widget.Window {
 		window.Close()
 	}
 
-	submitLayout := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewAnchorLayout()))
-	submitLayout.AddChild(NewBtn(assets.ImgIconSubmit, loader, &submitHandler, widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{HorizontalPosition: widget.AnchorLayoutPositionEnd})))
+	submitLayout := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
+		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{Stretch: true})),
+	)
+	submitLayout.AddChild(
+		NewBtn(
+			assets.ImgIconSubmit, loader, &submitHandler,
+			widget.WidgetOpts.LayoutData(
+				widget.AnchorLayoutData{HorizontalPosition: widget.AnchorLayoutPositionEnd},
+			)))
 	windowContainer.AddChild(submitLayout)
 
 	return window
