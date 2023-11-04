@@ -23,7 +23,7 @@ func loadImageNineSlice(img *ebiten.Image, centerWidth int, centerHeight int) *i
 	)
 }
 
-func NewBtn(icon resource.ImageID, loader *resource.Loader, handler *widget.ButtonClickedHandlerFunc) *widget.Button {
+func NewBtn(icon resource.ImageID, loader *resource.Loader, handler *widget.ButtonClickedHandlerFunc, opts ...widget.WidgetOpt) *widget.Button {
 	idle := loadImageNineSlice(loader.LoadImage(assets.ImgBtnIdle).Data, BTN_SIZE, BTN_SIZE)
 	hover := loadImageNineSlice(loader.LoadImage(assets.ImgBtnHover).Data, BTN_SIZE, BTN_SIZE)
 	pressed := loadImageNineSlice(loader.LoadImage(assets.ImgBtnPressed).Data, BTN_SIZE, BTN_SIZE)
@@ -110,11 +110,41 @@ func newSettingWindow(loader *resource.Loader) *widget.Window {
 	)
 	windowContainer.AddChild(textInput)
 
+	textarea := widget.NewTextArea(
+		widget.TextAreaOpts.ContainerOpts(
+			widget.ContainerOpts.WidgetOpts(
+				widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+					Position:  widget.RowLayoutPositionCenter,
+					MaxHeight: 150,
+				}),
+				widget.WidgetOpts.MinSize(375, 140),
+			),
+		),
+		widget.TextAreaOpts.FontColor(color.Black),
+		widget.TextAreaOpts.FontFace(loader.LoadFont(assets.FontDefault).Face),
+		widget.TextAreaOpts.ScrollContainerOpts(
+			widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
+				Idle: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+				Mask: image.NewNineSliceColor(color.NRGBA{100, 100, 100, 255}),
+			}),
+		),
+		widget.TextAreaOpts.TextPadding(widget.NewInsetsSimple(5)),
+		widget.TextAreaOpts.ControlWidgetSpacing(2),
+	)
+
+	textInput.ChangedEvent.AddHandler(func(args interface{}) {
+		textarea.SetText(textInput.GetText())
+	})
+
+	windowContainer.AddChild(textarea)
+
 	var submitHandler widget.ButtonClickedHandlerFunc = func(args *widget.ButtonClickedEventArgs) {
 		window.Close()
 	}
 
-	windowContainer.AddChild(NewBtn(assets.ImgIconSubmit, loader, &submitHandler))
+	submitLayout := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewAnchorLayout()))
+	submitLayout.AddChild(NewBtn(assets.ImgIconSubmit, loader, &submitHandler, widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{HorizontalPosition: widget.AnchorLayoutPositionEnd})))
+	windowContainer.AddChild(submitLayout)
 
 	return window
 }
