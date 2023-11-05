@@ -15,6 +15,10 @@ import (
 
 const BTN_SIZE = 20
 
+type GameUI struct {
+	ui *ebitenui.UI
+}
+
 func loadImageNineSlice(img *ebiten.Image, centerWidth int, centerHeight int) *image.NineSlice {
 	width := img.Bounds().Dx()
 	height := img.Bounds().Dy()
@@ -44,7 +48,7 @@ func NewBtn(icon resource.ImageID, loader *resource.Loader, handler *widget.Butt
 	return button
 }
 
-func newUI(loader *resource.Loader) *ebitenui.UI {
+func newUI(loader *resource.Loader) *GameUI {
 	ui := &ebitenui.UI{}
 
 	rootContainer := widget.NewContainer(
@@ -72,7 +76,7 @@ func newUI(loader *resource.Loader) *ebitenui.UI {
 	rootContainer.AddChild(NewBtn(assets.ImgIconRestart, loader, &restartHandler))
 
 	ui.Container = rootContainer
-	return ui
+	return &GameUI{ui: ui}
 }
 
 func newSettingWindow(loader *resource.Loader) *widget.Window {
@@ -158,24 +162,25 @@ func newSettingWindow(loader *resource.Loader) *widget.Window {
 
 	var sliderValue *widget.Label
 
+	sliderTrack := loadImageNineSlice(loader.LoadImage(assets.ImgSliderTrack).Data, 14, 4)
+	sliderBtn := loadImageNineSlice(loader.LoadImage(assets.ImgSliderBtn).Data, 1, 2)
 	slider := widget.NewSlider(
 		widget.SliderOpts.Direction(widget.DirectionHorizontal),
 		widget.SliderOpts.MinMax(1, 10),
 		widget.SliderOpts.Images(
 			&widget.SliderTrackImage{
-				Idle:  image.NewNineSliceColor(color.NRGBA{100, 120, 140, 255}),
-				Hover: image.NewNineSliceColor(color.NRGBA{100, 120, 140, 255}),
+				Idle: sliderTrack,
 			},
 			&widget.ButtonImage{
-				Idle:    image.NewNineSliceColor(color.NRGBA{50, 50, 50, 255}),
-				Hover:   image.NewNineSliceColor(color.NRGBA{80, 80, 80, 255}),
-				Pressed: image.NewNineSliceColor(color.NRGBA{70, 90, 120, 255}),
+				Idle:    sliderBtn,
+				Pressed: sliderBtn,
 			},
 		),
 		widget.SliderOpts.WidgetOpts(
 			widget.WidgetOpts.MinSize(200, 6),
 		),
-		widget.SliderOpts.FixedHandleSize(2),
+		widget.SliderOpts.FixedHandleSize(4),
+		widget.SliderOpts.MinHandleSize(8),
 		widget.SliderOpts.TrackOffset(0),
 		widget.SliderOpts.PageSizeFunc(func() int {
 			return 1
@@ -201,7 +206,6 @@ func newSettingWindow(loader *resource.Loader) *widget.Window {
 
 	submitLayout := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
-		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{Stretch: true})),
 	)
 	submitLayout.AddChild(
 		NewBtn(
@@ -212,13 +216,20 @@ func newSettingWindow(loader *resource.Loader) *widget.Window {
 
 	bottomPanel := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
-			widget.RowLayoutOpts.Spacing(10),
+			widget.RowLayoutOpts.Spacing(45),
 		)),
-		widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.RowLayoutData{Stretch: true})),
 	)
 	bottomPanel.AddChild(sliderContainer)
 	bottomPanel.AddChild(submitLayout)
 	windowContainer.AddChild(bottomPanel)
 
 	return window
+}
+
+func (game *GameUI) update() {
+	game.ui.Update()
+}
+
+func (game *GameUI) draw(screen *ebiten.Image) {
+	game.ui.Draw(screen)
 }

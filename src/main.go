@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 
-	"github.com/ebitenui/ebitenui"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	resource "github.com/quasilyte/ebitengine-resource"
@@ -18,17 +17,17 @@ const (
 
 type Game struct {
 	loader *resource.Loader
-	ui     *ebitenui.UI
+	ui     *GameUI
 }
 
 func (g *Game) Update() error {
-	g.ui.Update()
+	g.ui.update()
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.DrawImage(g.loader.LoadImage(assets.ImgBackground).Data, &ebiten.DrawImageOptions{})
-	g.ui.Draw(screen)
+	g.ui.draw(screen)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
