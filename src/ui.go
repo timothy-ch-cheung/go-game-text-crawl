@@ -52,13 +52,23 @@ func newUI(loader *resource.Loader) *GameUI {
 	ui := &ebitenui.UI{}
 
 	rootContainer := widget.NewContainer(
-		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Padding(widget.Insets{
-			Bottom: 5,
-			Left:   5,
-			Right:  5,
-			Top:    5,
-		}), widget.RowLayoutOpts.Spacing(442))),
+		widget.ContainerOpts.Layout(widget.NewRowLayout(
+			widget.RowLayoutOpts.Padding(widget.Insets{
+				Bottom: 5,
+				Left:   5,
+				Right:  5,
+				Top:    5,
+			}),
+			widget.RowLayoutOpts.Spacing(442),
+			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
+		),
+		),
 	)
+
+	settingContainer := widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Spacing(442))),
+	)
+	rootContainer.AddChild(settingContainer)
 
 	window := newSettingWindow(loader)
 
@@ -68,12 +78,12 @@ func newUI(loader *resource.Loader) *GameUI {
 		window.SetLocation(r)
 		ui.AddWindow(window)
 	}
-	rootContainer.AddChild(NewBtn(assets.ImgIconMenu, loader, &menuHandler))
+	settingContainer.AddChild(NewBtn(assets.ImgIconMenu, loader, &menuHandler))
 
 	var restartHandler widget.ButtonClickedHandlerFunc = func(args *widget.ButtonClickedEventArgs) {
 
 	}
-	rootContainer.AddChild(NewBtn(assets.ImgIconRestart, loader, &restartHandler))
+	settingContainer.AddChild(NewBtn(assets.ImgIconRestart, loader, &restartHandler))
 
 	ui.Container = rootContainer
 	return &GameUI{ui: ui}
