@@ -85,6 +85,17 @@ func newUI(loader *resource.Loader) *GameUI {
 	}
 	settingContainer.AddChild(NewBtn(assets.ImgIconRestart, loader, &restartHandler))
 
+	dialog := NewDialog(
+		DialogOpts.DialogImage(loadImageNineSlice(loader.LoadImage(assets.ImgFrame).Data, 16, 16)),
+		DialogOpts.PlayerPortrait(loader.LoadImage(assets.ImgPortrait).Data),
+		DialogOpts.PlayerName("Luna"),
+		DialogOpts.FontColor(color.Black),
+		DialogOpts.TitleFont(loader.LoadFont(assets.FontDefault).Face),
+		DialogOpts.TextFont(loader.LoadFont(assets.FontDefault).Face),
+		DialogOpts.TextBoxSize(100, 100),
+	)
+	rootContainer.AddChild(dialog)
+
 	ui.Container = rootContainer
 	return &GameUI{ui: ui}
 }

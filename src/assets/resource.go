@@ -22,6 +22,7 @@ const (
 	ImgInput
 	ImgSliderTrack
 	ImgSliderBtn
+	ImgPortrait
 )
 
 func RegisterImageResources(loader *resource.Loader) {
@@ -37,6 +38,7 @@ func RegisterImageResources(loader *resource.Loader) {
 		ImgInput:       {Path: "ui/input.png"},
 		ImgSliderTrack: {Path: "ui/slider-track.png"},
 		ImgSliderBtn:   {Path: "ui/slider-btn.png"},
+		ImgPortrait:    {Path: "ui/portrait.png"},
 	}
 
 	for id, res := range imageResources {

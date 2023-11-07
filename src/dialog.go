@@ -1,6 +1,7 @@
 package main
 
 import (
+	img "image"
 	"image/color"
 
 	"github.com/ebitenui/ebitenui/image"
@@ -53,6 +54,16 @@ func (dialog *Dialog) PreferredSize() (int, int) {
 	return dialog.container.PreferredSize()
 }
 
+func (dialog *Dialog) SetLocation(rect img.Rectangle) {
+	dialog.init.Do()
+	dialog.container.GetWidget().Rect = rect
+}
+
+func (dialog *Dialog) Render(screen *ebiten.Image, def widget.DeferredRenderFunc) {
+	dialog.init.Do()
+	dialog.container.Render(screen, def)
+}
+
 func (dialog *Dialog) createWidget() {
 	dialog.container = widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
@@ -83,6 +94,12 @@ func (dialog *Dialog) createWidget() {
 			widget.ContainerOpts.WidgetOpts(
 				widget.WidgetOpts.MinSize(dialog.textBoxWidth, dialog.textBoxHeight),
 			),
+		),
+		widget.TextAreaOpts.ScrollContainerOpts(
+			widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
+				Idle: dialog.dialogImage,
+				Mask: dialog.dialogImage,
+			}),
 		),
 		widget.TextAreaOpts.Text(""),
 		widget.TextAreaOpts.FontFace(dialog.textFont),
