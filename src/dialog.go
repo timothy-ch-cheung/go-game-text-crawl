@@ -13,14 +13,13 @@ import (
 type Dialog struct {
 	init           *widget.MultiOnce
 	container      *widget.Container
-	dialogImage    *image.NineSlice
+	dialogImage    *ImageNineSlice
 	fontColor      color.Color
 	textFont       font.Face
 	playerNameFont font.Face
 	playerName     string
 	playerPortrait *ebiten.Image
 	textBoxWidth   int
-	textBoxHeight  int
 }
 
 type DialogOpt func(dialog *Dialog)
@@ -65,12 +64,23 @@ func (dialog *Dialog) Render(screen *ebiten.Image, def widget.DeferredRenderFunc
 }
 
 func (dialog *Dialog) createWidget() {
+	dialogImage := loadImageNineSlice(*dialog.dialogImage)
+	portraitWidth := dialog.dialogImage.img.Bounds().Dx()
+	portraitHeight := dialog.dialogImage.img.Bounds().Dy()
+	xPadding := (portraitWidth - dialog.dialogImage.centerWidth) / 2
+	yPadding := (portraitHeight - dialog.dialogImage.centerHeight) / 2
+
 	dialog.container = widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionHorizontal),
-			widget.RowLayoutOpts.Spacing(5),
+			widget.RowLayoutOpts.Padding(widget.Insets{
+				Left:   xPadding,
+				Right:  xPadding,
+				Top:    yPadding,
+				Bottom: yPadding,
+			}),
 		)),
-		widget.ContainerOpts.BackgroundImage(dialog.dialogImage),
+		widget.ContainerOpts.BackgroundImage(dialogImage),
 	)
 
 	graphic := widget.NewGraphic(widget.GraphicOpts.Image(dialog.playerPortrait))
@@ -79,7 +89,7 @@ func (dialog *Dialog) createWidget() {
 	textContiner := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
-			widget.RowLayoutOpts.Spacing(5),
+			widget.RowLayoutOpts.Padding(widget.Insets{Left: 2, Right: 2, Top: 2, Bottom: 2}),
 		)),
 	)
 	dialog.container.AddChild(textContiner)
@@ -89,19 +99,20 @@ func (dialog *Dialog) createWidget() {
 	)
 	textContiner.AddChild(label)
 
+	textBoxHeight := portraitHeight - label.GetWidget().MinHeight
 	textArea := widget.NewTextArea(
 		widget.TextAreaOpts.ContainerOpts(
 			widget.ContainerOpts.WidgetOpts(
-				widget.WidgetOpts.MinSize(dialog.textBoxWidth, dialog.textBoxHeight),
+				widget.WidgetOpts.MinSize(dialog.textBoxWidth, textBoxHeight),
 			),
 		),
 		widget.TextAreaOpts.ScrollContainerOpts(
 			widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
-				Idle: dialog.dialogImage,
-				Mask: dialog.dialogImage,
+				Idle: image.NewNineSliceColor(color.Transparent),
+				Mask: image.NewNineSliceColor(color.Transparent),
 			}),
 		),
-		widget.TextAreaOpts.Text(""),
+		widget.TextAreaOpts.Text("Lorem ipsum dolor sit amet"),
 		widget.TextAreaOpts.FontFace(dialog.textFont),
 		widget.TextAreaOpts.FontColor(dialog.fontColor),
 	)
@@ -138,15 +149,14 @@ func (option DialogOptions) TextFont(textFont font.Face) DialogOpt {
 	}
 }
 
-func (option DialogOptions) DialogImage(dialogImage *image.NineSlice) DialogOpt {
+func (option DialogOptions) DialogImage(dialogImage *ImageNineSlice) DialogOpt {
 	return func(dialog *Dialog) {
 		dialog.dialogImage = dialogImage
 	}
 }
 
-func (option DialogOptions) TextBoxSize(width int, height int) DialogOpt {
+func (option DialogOptions) TextBoxWith(width int) DialogOpt {
 	return func(dialog *Dialog) {
 		dialog.textBoxWidth = width
-		dialog.textBoxHeight = height
 	}
 }

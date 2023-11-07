@@ -6,7 +6,6 @@ import (
 	"image/color"
 
 	"github.com/ebitenui/ebitenui"
-	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	resource "github.com/quasilyte/ebitengine-resource"
@@ -19,19 +18,10 @@ type GameUI struct {
 	ui *ebitenui.UI
 }
 
-func loadImageNineSlice(img *ebiten.Image, centerWidth int, centerHeight int) *image.NineSlice {
-	width := img.Bounds().Dx()
-	height := img.Bounds().Dy()
-	return image.NewNineSlice(img,
-		[3]int{(width - centerWidth) / 2, centerWidth, width - (width-centerWidth)/2 - centerWidth},
-		[3]int{(height - centerHeight) / 2, centerHeight, height - (height-centerHeight)/2 - centerHeight},
-	)
-}
-
 func NewBtn(icon resource.ImageID, loader *resource.Loader, handler *widget.ButtonClickedHandlerFunc, opts ...widget.WidgetOpt) *widget.Button {
-	idle := loadImageNineSlice(loader.LoadImage(assets.ImgBtnIdle).Data, BTN_SIZE, BTN_SIZE)
-	hover := loadImageNineSlice(loader.LoadImage(assets.ImgBtnHover).Data, BTN_SIZE, BTN_SIZE)
-	pressed := loadImageNineSlice(loader.LoadImage(assets.ImgBtnPressed).Data, BTN_SIZE, BTN_SIZE)
+	idle := loadNineSlice(loader.LoadImage(assets.ImgBtnIdle).Data, BTN_SIZE, BTN_SIZE)
+	hover := loadNineSlice(loader.LoadImage(assets.ImgBtnHover).Data, BTN_SIZE, BTN_SIZE)
+	pressed := loadNineSlice(loader.LoadImage(assets.ImgBtnPressed).Data, BTN_SIZE, BTN_SIZE)
 	btnIcon := loader.LoadImage(icon).Data
 
 	button := widget.NewButton(
@@ -59,7 +49,7 @@ func newUI(loader *resource.Loader) *GameUI {
 				Right:  5,
 				Top:    5,
 			}),
-			widget.RowLayoutOpts.Spacing(442),
+			widget.RowLayoutOpts.Spacing(180),
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 		),
 		),
@@ -86,13 +76,13 @@ func newUI(loader *resource.Loader) *GameUI {
 	settingContainer.AddChild(NewBtn(assets.ImgIconRestart, loader, &restartHandler))
 
 	dialog := NewDialog(
-		DialogOpts.DialogImage(loadImageNineSlice(loader.LoadImage(assets.ImgFrame).Data, 16, 16)),
+		DialogOpts.DialogImage(&ImageNineSlice{img: loader.LoadImage(assets.ImgFrame).Data, centerWidth: 16, centerHeight: 16}),
 		DialogOpts.PlayerPortrait(loader.LoadImage(assets.ImgPortrait).Data),
 		DialogOpts.PlayerName("Luna"),
 		DialogOpts.FontColor(color.Black),
 		DialogOpts.TitleFont(loader.LoadFont(assets.FontDefault).Face),
 		DialogOpts.TextFont(loader.LoadFont(assets.FontDefault).Face),
-		DialogOpts.TextBoxSize(100, 100),
+		DialogOpts.TextBoxWith(140),
 	)
 	rootContainer.AddChild(dialog)
 
@@ -102,7 +92,7 @@ func newUI(loader *resource.Loader) *GameUI {
 
 func newSettingWindow(loader *resource.Loader) *widget.Window {
 	windowContainer := widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(loadImageNineSlice(loader.LoadImage(assets.ImgFrame).Data, 16, 16)),
+		widget.ContainerOpts.BackgroundImage(loadNineSlice(loader.LoadImage(assets.ImgFrame).Data, 16, 16)),
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(10)),
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
@@ -125,7 +115,7 @@ func newSettingWindow(loader *resource.Loader) *widget.Window {
 			}),
 		),
 		widget.TextInputOpts.Padding(widget.NewInsetsSimple(5)),
-		widget.TextInputOpts.Image(&widget.TextInputImage{Idle: loadImageNineSlice(loader.LoadImage(assets.ImgInput).Data, 16, 16)}),
+		widget.TextInputOpts.Image(&widget.TextInputImage{Idle: loadNineSlice(loader.LoadImage(assets.ImgInput).Data, 16, 16)}),
 		widget.TextInputOpts.Face(loader.LoadFont(assets.FontDefault).Face),
 		widget.TextInputOpts.Color(&widget.TextInputColor{
 			Idle:     color.NRGBA{254, 255, 255, 255},
@@ -153,8 +143,8 @@ func newSettingWindow(loader *resource.Loader) *widget.Window {
 		widget.TextAreaOpts.FontFace(loader.LoadFont(assets.FontDefault).Face),
 		widget.TextAreaOpts.ScrollContainerOpts(
 			widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
-				Idle: loadImageNineSlice(loader.LoadImage(assets.ImgInput).Data, 16, 16),
-				Mask: loadImageNineSlice(loader.LoadImage(assets.ImgInput).Data, 16, 16),
+				Idle: loadNineSlice(loader.LoadImage(assets.ImgInput).Data, 16, 16),
+				Mask: loadNineSlice(loader.LoadImage(assets.ImgInput).Data, 16, 16),
 			}),
 		),
 		widget.TextAreaOpts.TextPadding(widget.NewInsetsSimple(5)),
@@ -183,8 +173,8 @@ func newSettingWindow(loader *resource.Loader) *widget.Window {
 
 	var sliderValue *widget.Label
 
-	sliderTrack := loadImageNineSlice(loader.LoadImage(assets.ImgSliderTrack).Data, 14, 4)
-	sliderBtn := loadImageNineSlice(loader.LoadImage(assets.ImgSliderBtn).Data, 1, 2)
+	sliderTrack := loadNineSlice(loader.LoadImage(assets.ImgSliderTrack).Data, 14, 4)
+	sliderBtn := loadNineSlice(loader.LoadImage(assets.ImgSliderBtn).Data, 1, 2)
 	slider := widget.NewSlider(
 		widget.SliderOpts.Direction(widget.DirectionHorizontal),
 		widget.SliderOpts.MinMax(1, 10),
