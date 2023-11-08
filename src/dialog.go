@@ -87,7 +87,7 @@ func (dialog *Dialog) createWidget() {
 		)),
 		widget.ContainerOpts.BackgroundImage(dialogImage),
 		widget.ContainerOpts.WidgetOpts(
-			widget.WidgetOpts.MinSize(dialog.textBoxWidth+dialog.playerPortrait.Bounds().Dx()+65, 50),
+			widget.WidgetOpts.MinSize(dialog.textBoxWidth+dialog.playerPortrait.Bounds().Dx(), 50),
 		),
 	)
 
@@ -114,6 +114,11 @@ func (dialog *Dialog) createWidget() {
 	textArea := widget.NewTextArea(
 		widget.TextAreaOpts.ContainerOpts(
 			widget.ContainerOpts.WidgetOpts(
+				widget.WidgetOpts.LayoutData(widget.RowLayoutData{
+					Position:  widget.RowLayoutPositionCenter,
+					MaxWidth:  dialog.textBoxWidth,
+					MaxHeight: textBoxHeight,
+				}),
 				widget.WidgetOpts.MinSize(dialog.textBoxWidth, textBoxHeight),
 			),
 		),
@@ -123,7 +128,7 @@ func (dialog *Dialog) createWidget() {
 				Mask: textFrameImage,
 			}),
 		),
-		widget.TextAreaOpts.Text("Lorem ipsum dolor sit amet"),
+		widget.TextAreaOpts.Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat"),
 		widget.TextAreaOpts.FontFace(dialog.textFont),
 		widget.TextAreaOpts.FontColor(dialog.fontColor),
 		widget.TextAreaOpts.TextPadding(widget.NewInsetsSimple(2)),
