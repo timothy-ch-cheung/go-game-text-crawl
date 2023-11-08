@@ -4,7 +4,6 @@ import (
 	img "image"
 	"image/color"
 
-	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"golang.org/x/image/font"
@@ -14,6 +13,7 @@ type Dialog struct {
 	init           *widget.MultiOnce
 	container      *widget.Container
 	dialogImage    *ImageNineSlice
+	textFrameImage *ImageNineSlice
 	fontColor      color.Color
 	textFont       font.Face
 	playerNameFont font.Face
@@ -58,6 +58,14 @@ func (dialog *Dialog) SetLocation(rect img.Rectangle) {
 	dialog.container.GetWidget().Rect = rect
 }
 
+func getPadding(imgNineSlice ImageNineSlice) (int, int) {
+	portraitWidth := imgNineSlice.img.Bounds().Dx()
+	portraitHeight := imgNineSlice.img.Bounds().Dy()
+	xPadding := (portraitWidth - imgNineSlice.centerWidth) / 2
+	yPadding := (portraitHeight - imgNineSlice.centerHeight) / 2
+	return xPadding, yPadding
+}
+
 func (dialog *Dialog) Render(screen *ebiten.Image, def widget.DeferredRenderFunc) {
 	dialog.init.Do()
 	dialog.container.Render(screen, def)
@@ -65,10 +73,7 @@ func (dialog *Dialog) Render(screen *ebiten.Image, def widget.DeferredRenderFunc
 
 func (dialog *Dialog) createWidget() {
 	dialogImage := loadImageNineSlice(*dialog.dialogImage)
-	portraitWidth := dialog.dialogImage.img.Bounds().Dx()
-	portraitHeight := dialog.dialogImage.img.Bounds().Dy()
-	xPadding := (portraitWidth - dialog.dialogImage.centerWidth) / 2
-	yPadding := (portraitHeight - dialog.dialogImage.centerHeight) / 2
+	xPadding, yPadding := getPadding(*dialog.dialogImage)
 
 	dialog.container = widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
@@ -81,6 +86,9 @@ func (dialog *Dialog) createWidget() {
 			}),
 		)),
 		widget.ContainerOpts.BackgroundImage(dialogImage),
+		widget.ContainerOpts.WidgetOpts(
+			widget.WidgetOpts.MinSize(dialog.textBoxWidth+dialog.playerPortrait.Bounds().Dx()+65, 50),
+		),
 	)
 
 	graphic := widget.NewGraphic(widget.GraphicOpts.Image(dialog.playerPortrait))
@@ -90,6 +98,7 @@ func (dialog *Dialog) createWidget() {
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
 			widget.RowLayoutOpts.Padding(widget.Insets{Left: 2, Right: 2, Top: 2, Bottom: 2}),
+			widget.RowLayoutOpts.Spacing(2),
 		)),
 	)
 	dialog.container.AddChild(textContiner)
@@ -99,7 +108,9 @@ func (dialog *Dialog) createWidget() {
 	)
 	textContiner.AddChild(label)
 
-	textBoxHeight := portraitHeight - label.GetWidget().MinHeight
+	_, labelHeight := label.PreferredSize()
+	textBoxHeight := dialog.playerPortrait.Bounds().Dy() - labelHeight - 6
+	textFrameImage := loadImageNineSlice(*dialog.textFrameImage)
 	textArea := widget.NewTextArea(
 		widget.TextAreaOpts.ContainerOpts(
 			widget.ContainerOpts.WidgetOpts(
@@ -108,13 +119,14 @@ func (dialog *Dialog) createWidget() {
 		),
 		widget.TextAreaOpts.ScrollContainerOpts(
 			widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
-				Idle: image.NewNineSliceColor(color.Transparent),
-				Mask: image.NewNineSliceColor(color.Transparent),
+				Idle: textFrameImage,
+				Mask: textFrameImage,
 			}),
 		),
 		widget.TextAreaOpts.Text("Lorem ipsum dolor sit amet"),
 		widget.TextAreaOpts.FontFace(dialog.textFont),
 		widget.TextAreaOpts.FontColor(dialog.fontColor),
+		widget.TextAreaOpts.TextPadding(widget.NewInsetsSimple(2)),
 	)
 	textContiner.AddChild(textArea)
 }
@@ -152,6 +164,12 @@ func (option DialogOptions) TextFont(textFont font.Face) DialogOpt {
 func (option DialogOptions) DialogImage(dialogImage *ImageNineSlice) DialogOpt {
 	return func(dialog *Dialog) {
 		dialog.dialogImage = dialogImage
+	}
+}
+
+func (option DialogOptions) TextFrameImage(dialogImage *ImageNineSlice) DialogOpt {
+	return func(dialog *Dialog) {
+		dialog.textFrameImage = dialogImage
 	}
 }
 

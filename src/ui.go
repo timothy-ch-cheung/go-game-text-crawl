@@ -77,9 +77,10 @@ func newUI(loader *resource.Loader) *GameUI {
 
 	dialog := NewDialog(
 		DialogOpts.DialogImage(&ImageNineSlice{img: loader.LoadImage(assets.ImgFrame).Data, centerWidth: 16, centerHeight: 16}),
+		DialogOpts.TextFrameImage(&ImageNineSlice{img: loader.LoadImage(assets.ImgTextFrame).Data, centerWidth: 14, centerHeight: 14}),
 		DialogOpts.PlayerPortrait(loader.LoadImage(assets.ImgPortrait).Data),
 		DialogOpts.PlayerName("Luna"),
-		DialogOpts.FontColor(color.Black),
+		DialogOpts.FontColor(color.White),
 		DialogOpts.TitleFont(loader.LoadFont(assets.FontDefault).Face),
 		DialogOpts.TextFont(loader.LoadFont(assets.FontDefault).Face),
 		DialogOpts.TextBoxWith(140),
