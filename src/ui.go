@@ -83,7 +83,8 @@ func newUI(loader *resource.Loader) *GameUI {
 		DialogOpts.FontColor(color.White),
 		DialogOpts.TitleFont(loader.LoadFont(assets.FontDefault).Face),
 		DialogOpts.TextFont(loader.LoadFont(assets.FontDefault).Face),
-		DialogOpts.TextBoxWith(140),
+		DialogOpts.TextBoxWith(160),
+		DialogOpts.Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat"),
 	)
 	rootContainer.AddChild(dialog)
 

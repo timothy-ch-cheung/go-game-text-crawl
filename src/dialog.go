@@ -20,6 +20,8 @@ type Dialog struct {
 	playerName     string
 	playerPortrait *ebiten.Image
 	textBoxWidth   int
+	text           string
+	textGroups     []string
 }
 
 type DialogOpt func(dialog *Dialog)
@@ -111,6 +113,7 @@ func (dialog *Dialog) createWidget() {
 	_, labelHeight := label.PreferredSize()
 	textBoxHeight := dialog.playerPortrait.Bounds().Dy() - labelHeight - 6
 	textFrameImage := loadImageNineSlice(*dialog.textFrameImage)
+	dialog.textGroups = GroupText(dialog.textFont, dialog.text, dialog.textBoxWidth, textBoxHeight)
 	textArea := widget.NewTextArea(
 		widget.TextAreaOpts.ContainerOpts(
 			widget.ContainerOpts.WidgetOpts(
@@ -128,7 +131,7 @@ func (dialog *Dialog) createWidget() {
 				Mask: textFrameImage,
 			}),
 		),
-		widget.TextAreaOpts.Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat"),
+		widget.TextAreaOpts.Text(dialog.textGroups[0]),
 		widget.TextAreaOpts.FontFace(dialog.textFont),
 		widget.TextAreaOpts.FontColor(dialog.fontColor),
 		widget.TextAreaOpts.TextPadding(widget.NewInsetsSimple(2)),
@@ -181,5 +184,11 @@ func (option DialogOptions) TextFrameImage(dialogImage *ImageNineSlice) DialogOp
 func (option DialogOptions) TextBoxWith(width int) DialogOpt {
 	return func(dialog *Dialog) {
 		dialog.textBoxWidth = width
+	}
+}
+
+func (option DialogOptions) Text(text string) DialogOpt {
+	return func(dialog *Dialog) {
+		dialog.text = text
 	}
 }
