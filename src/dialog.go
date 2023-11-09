@@ -206,6 +206,18 @@ func (dialog *Dialog) SetSpeedMultiplier(multiplier float64) {
 	dialog.speedMultiplier = multiplier
 }
 
+func (dialog *Dialog) AdvanceDialog() {
+	if !dialog.dialogPage.IsPageEnd() {
+		dialog.dialogPage.currentCharacter = len(dialog.dialogPage.GetCurrentText()) - 2
+	} else if !dialog.dialogPage.IsDialogEnd() {
+		dialog.dialogPage.currentCharacter = 0
+		dialog.dialogPage.currentPage += 1
+		lastUpdated = time.Now()
+	} else {
+		dialog.setText("")
+	}
+}
+
 func (dialog *Dialog) RestartDialog() {
 	dialog.dialogPage.currentPage = 0
 	dialog.dialogPage.currentCharacter = 0
@@ -235,7 +247,7 @@ func (dialog *Dialog) Render(screen *ebiten.Image, def widget.DeferredRenderFunc
 	now := time.Now()
 	if !dialog.dialogPage.IsPageEnd() && now.Sub(lastUpdated).Seconds() > 1/(dialog.speedMultiplier*BASE_SPEED) {
 		dialog.dialogPage.currentCharacter += 1
-		dialog.setText(dialog.dialogPage.GetCurrentText())
+		dialog.setText(dialog.dialogPage.GetDisplayedText())
 		lastUpdated = now
 	}
 	dialog.init.Do()
@@ -265,10 +277,18 @@ func replaceAfterPosition(input string, position int) string {
 }
 
 func (dialogPage *DialogPage) GetCurrentText() string {
+	return dialogPage.textGroups[dialogPage.currentPage]
+}
+
+func (dialogPage *DialogPage) GetDisplayedText() string {
 	currentPage := dialogPage.textGroups[dialogPage.currentPage]
 	return replaceAfterPosition(currentPage, dialogPage.currentCharacter)
 }
 
 func (dialogPage *DialogPage) IsPageEnd() bool {
 	return dialogPage.currentCharacter == len(dialogPage.textGroups[dialogPage.currentPage])-1
+}
+
+func (dialogPage *DialogPage) IsDialogEnd() bool {
+	return dialogPage.currentPage == len(dialogPage.textGroups)-1
 }

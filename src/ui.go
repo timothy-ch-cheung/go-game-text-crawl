@@ -15,7 +15,8 @@ import (
 const BTN_SIZE = 20
 
 type GameUI struct {
-	ui *ebitenui.UI
+	ui            *ebitenui.UI
+	AdvanceDialog func()
 }
 
 func NewBtn(icon resource.ImageID, loader *resource.Loader, handler *widget.ButtonClickedHandlerFunc, opts ...widget.WidgetOpt) *widget.Button {
@@ -90,7 +91,12 @@ func newUI(loader *resource.Loader) *GameUI {
 	rootContainer.AddChild(dialog)
 
 	ui.Container = rootContainer
-	return &GameUI{ui: ui}
+
+	gameUI := &GameUI{ui: ui}
+	gameUI.AdvanceDialog = func() {
+		dialog.AdvanceDialog()
+	}
+	return gameUI
 }
 
 func newSettingWindow(loader *resource.Loader) *widget.Window {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
+	input "github.com/quasilyte/ebitengine-input"
 	resource "github.com/quasilyte/ebitengine-resource"
 	"github.com/timothy-ch-cheung/go-game-text-crawl/assets"
 )
@@ -16,12 +17,23 @@ const (
 )
 
 type Game struct {
-	loader *resource.Loader
-	ui     *GameUI
+	loader       *resource.Loader
+	ui           *GameUI
+	inputSystem  input.System
+	inputHandler input.Handler
 }
 
+const (
+	ActionAdvanceDialog input.Action = iota
+)
+
 func (g *Game) Update() error {
+	g.inputSystem.Update()
 	g.ui.update()
+
+	if g.inputHandler.ActionIsJustPressed(ActionAdvanceDialog) {
+		g.ui.AdvanceDialog()
+	}
 	return nil
 }
 
@@ -35,16 +47,26 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 }
 
 func newGame() *Game {
+	game := &Game{}
+
+	game.inputSystem.Init(input.SystemConfig{
+		DevicesEnabled: input.AnyDevice,
+	})
+
+	keymap := input.Keymap{ActionAdvanceDialog: {input.KeyA, input.KeySpace}}
+	game.inputHandler = *game.inputSystem.NewHandler(0, keymap)
+
 	audioContext := audio.NewContext(44100)
 	loader := resource.NewLoader(audioContext)
 	loader.OpenAssetFunc = assets.OpenAssetFunc
+	game.loader = loader
+
 	assets.RegisterImageResources(loader)
 	assets.RegisterFontResources(loader)
 
-	return &Game{
-		loader: loader,
-		ui:     newUI(loader),
-	}
+	game.ui = newUI(loader)
+
+	return game
 }
 
 func main() {
