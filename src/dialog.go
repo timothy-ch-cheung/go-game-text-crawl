@@ -3,25 +3,35 @@ package main
 import (
 	img "image"
 	"image/color"
+	"time"
 
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"golang.org/x/image/font"
 )
 
+const (
+	BASE_SPEED               = 2
+	DEFAULT_SPEED_MULTIPLIER = 5
+)
+
+var lastUpdated time.Time
+
 type Dialog struct {
-	init           *widget.MultiOnce
-	container      *widget.Container
-	dialogImage    *ImageNineSlice
-	textFrameImage *ImageNineSlice
-	fontColor      color.Color
-	textFont       font.Face
-	playerNameFont font.Face
-	playerName     string
-	playerPortrait *ebiten.Image
-	textBoxWidth   int
-	text           string
-	textGroups     []string
+	init            *widget.MultiOnce
+	container       *widget.Container
+	dialogImage     *ImageNineSlice
+	textFrameImage  *ImageNineSlice
+	fontColor       color.Color
+	textFont        font.Face
+	playerNameFont  font.Face
+	playerName      string
+	playerPortrait  *ebiten.Image
+	textBoxWidth    int
+	text            string
+	dialogPage      *DialogPage
+	speedMultiplier float64
+	setText         func(string)
 }
 
 type DialogOpt func(dialog *Dialog)
@@ -29,7 +39,17 @@ type DialogOpt func(dialog *Dialog)
 type DialogOptions struct {
 }
 
+type DialogPage struct {
+	textGroups       []string
+	currentPage      int
+	currentCharacter int
+}
+
 var DialogOpts DialogOptions
+
+/////////////////////
+// Widget Creation //
+/////////////////////
 
 func NewDialog(opts ...DialogOpt) *Dialog {
 	dialog := &Dialog{
@@ -45,35 +65,9 @@ func NewDialog(opts ...DialogOpt) *Dialog {
 	return dialog
 }
 
-func (dialog *Dialog) GetWidget() *widget.Widget {
-	dialog.init.Do()
-	return dialog.container.GetWidget()
-}
-
-func (dialog *Dialog) PreferredSize() (int, int) {
-	dialog.init.Do()
-	return dialog.container.PreferredSize()
-}
-
-func (dialog *Dialog) SetLocation(rect img.Rectangle) {
-	dialog.init.Do()
-	dialog.container.GetWidget().Rect = rect
-}
-
-func getPadding(imgNineSlice ImageNineSlice) (int, int) {
-	portraitWidth := imgNineSlice.img.Bounds().Dx()
-	portraitHeight := imgNineSlice.img.Bounds().Dy()
-	xPadding := (portraitWidth - imgNineSlice.centerWidth) / 2
-	yPadding := (portraitHeight - imgNineSlice.centerHeight) / 2
-	return xPadding, yPadding
-}
-
-func (dialog *Dialog) Render(screen *ebiten.Image, def widget.DeferredRenderFunc) {
-	dialog.init.Do()
-	dialog.container.Render(screen, def)
-}
-
 func (dialog *Dialog) createWidget() {
+	dialog.speedMultiplier = DEFAULT_SPEED_MULTIPLIER
+	lastUpdated = time.Now()
 	dialogImage := loadImageNineSlice(*dialog.dialogImage)
 	xPadding, yPadding := getPadding(*dialog.dialogImage)
 
@@ -113,7 +107,11 @@ func (dialog *Dialog) createWidget() {
 	_, labelHeight := label.PreferredSize()
 	textBoxHeight := dialog.playerPortrait.Bounds().Dy() - labelHeight - 6
 	textFrameImage := loadImageNineSlice(*dialog.textFrameImage)
-	dialog.textGroups = GroupText(dialog.textFont, dialog.text, dialog.textBoxWidth, textBoxHeight)
+	dialog.dialogPage = &DialogPage{
+		textGroups:       GroupText(dialog.textFont, dialog.text, dialog.textBoxWidth, textBoxHeight),
+		currentPage:      0,
+		currentCharacter: 0,
+	}
 	textArea := widget.NewTextArea(
 		widget.TextAreaOpts.ContainerOpts(
 			widget.ContainerOpts.WidgetOpts(
@@ -131,13 +129,20 @@ func (dialog *Dialog) createWidget() {
 				Mask: textFrameImage,
 			}),
 		),
-		widget.TextAreaOpts.Text(dialog.textGroups[0]),
+		widget.TextAreaOpts.Text(dialog.dialogPage.GetCurrentText()),
 		widget.TextAreaOpts.FontFace(dialog.textFont),
 		widget.TextAreaOpts.FontColor(dialog.fontColor),
 		widget.TextAreaOpts.TextPadding(widget.NewInsetsSimple(2)),
 	)
 	textContiner.AddChild(textArea)
+	dialog.setText = func(text string) {
+		textArea.SetText(text)
+	}
 }
+
+////////////////////////////
+// Initial Widget Options //
+////////////////////////////
 
 func (option DialogOptions) PlayerPortrait(image *ebiten.Image) DialogOpt {
 	return func(dialog *Dialog) {
@@ -191,4 +196,68 @@ func (option DialogOptions) Text(text string) DialogOpt {
 	return func(dialog *Dialog) {
 		dialog.text = text
 	}
+}
+
+///////////////////////////
+// Active Widget Options //
+///////////////////////////
+
+func (dialog *Dialog) SetSpeedMultiplier(multiplier float64) {
+	dialog.speedMultiplier = multiplier
+}
+
+func (dialog *Dialog) RestartDialog() {
+	dialog.dialogPage.currentPage = 0
+	dialog.dialogPage.currentCharacter = 0
+	lastUpdated = time.Now()
+}
+
+/////////////////////////////////////////////
+// Implement PreferredSizeLocateableWidget //
+/////////////////////////////////////////////
+
+func (dialog *Dialog) GetWidget() *widget.Widget {
+	dialog.init.Do()
+	return dialog.container.GetWidget()
+}
+
+func (dialog *Dialog) PreferredSize() (int, int) {
+	dialog.init.Do()
+	return dialog.container.PreferredSize()
+}
+
+func (dialog *Dialog) SetLocation(rect img.Rectangle) {
+	dialog.init.Do()
+	dialog.container.GetWidget().Rect = rect
+}
+
+func (dialog *Dialog) Render(screen *ebiten.Image, def widget.DeferredRenderFunc) {
+	now := time.Now()
+	if !dialog.dialogPage.IsPageEnd() && now.Sub(lastUpdated).Seconds() > 1/(dialog.speedMultiplier*BASE_SPEED) {
+		dialog.dialogPage.currentCharacter += 1
+		dialog.setText(dialog.dialogPage.GetCurrentText())
+		lastUpdated = now
+	}
+	dialog.init.Do()
+	dialog.container.Render(screen, def)
+}
+
+//////////////////////
+// Helper Functions //
+//////////////////////
+
+func getPadding(imgNineSlice ImageNineSlice) (int, int) {
+	portraitWidth := imgNineSlice.img.Bounds().Dx()
+	portraitHeight := imgNineSlice.img.Bounds().Dy()
+	xPadding := (portraitWidth - imgNineSlice.centerWidth) / 2
+	yPadding := (portraitHeight - imgNineSlice.centerHeight) / 2
+	return xPadding, yPadding
+}
+
+func (dialogPage *DialogPage) GetCurrentText() string {
+	return dialogPage.textGroups[dialogPage.currentPage][:dialogPage.currentCharacter+1]
+}
+
+func (dialogPage *DialogPage) IsPageEnd() bool {
+	return dialogPage.currentCharacter == len(dialogPage.textGroups[dialogPage.currentPage])-1
 }

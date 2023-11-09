@@ -58,22 +58,8 @@ func newUI(loader *resource.Loader) *GameUI {
 	settingContainer := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Spacing(442))),
 	)
-	rootContainer.AddChild(settingContainer)
 
 	window := newSettingWindow(loader)
-
-	var menuHandler widget.ButtonClickedHandlerFunc = func(args *widget.ButtonClickedEventArgs) {
-		r := img.Rect(0, 0, 400, 220)
-		r = r.Add(img.Point{56, 34})
-		window.SetLocation(r)
-		ui.AddWindow(window)
-	}
-	settingContainer.AddChild(NewBtn(assets.ImgIconMenu, loader, &menuHandler))
-
-	var restartHandler widget.ButtonClickedHandlerFunc = func(args *widget.ButtonClickedEventArgs) {
-
-	}
-	settingContainer.AddChild(NewBtn(assets.ImgIconRestart, loader, &restartHandler))
 
 	dialog := NewDialog(
 		DialogOpts.DialogImage(&ImageNineSlice{img: loader.LoadImage(assets.ImgFrame).Data, centerWidth: 16, centerHeight: 16}),
@@ -86,6 +72,21 @@ func newUI(loader *resource.Loader) *GameUI {
 		DialogOpts.TextBoxWith(160),
 		DialogOpts.Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat"),
 	)
+
+	var menuHandler widget.ButtonClickedHandlerFunc = func(args *widget.ButtonClickedEventArgs) {
+		r := img.Rect(0, 0, 400, 220)
+		r = r.Add(img.Point{56, 34})
+		window.SetLocation(r)
+		ui.AddWindow(window)
+	}
+	settingContainer.AddChild(NewBtn(assets.ImgIconMenu, loader, &menuHandler))
+
+	var restartHandler widget.ButtonClickedHandlerFunc = func(args *widget.ButtonClickedEventArgs) {
+		dialog.RestartDialog()
+	}
+	settingContainer.AddChild(NewBtn(assets.ImgIconRestart, loader, &restartHandler))
+
+	rootContainer.AddChild(settingContainer)
 	rootContainer.AddChild(dialog)
 
 	ui.Container = rootContainer
