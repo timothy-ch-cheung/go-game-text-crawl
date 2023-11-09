@@ -60,8 +60,6 @@ func newUI(loader *resource.Loader) *GameUI {
 		widget.ContainerOpts.Layout(widget.NewRowLayout(widget.RowLayoutOpts.Spacing(442))),
 	)
 
-	window := newSettingWindow(loader)
-
 	dialog := NewDialog(
 		DialogOpts.DialogImage(&ImageNineSlice{img: loader.LoadImage(assets.ImgFrame).Data, centerWidth: 16, centerHeight: 16}),
 		DialogOpts.TextFrameImage(&ImageNineSlice{img: loader.LoadImage(assets.ImgTextFrame).Data, centerWidth: 14, centerHeight: 14}),
@@ -73,6 +71,11 @@ func newUI(loader *resource.Loader) *GameUI {
 		DialogOpts.TextBoxWith(160),
 		DialogOpts.Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat"),
 	)
+
+	sliderChangedAction := func(value float64) {
+		dialog.SetSpeedMultiplier(value)
+	}
+	window := newSettingWindow(loader, sliderChangedAction)
 
 	var menuHandler widget.ButtonClickedHandlerFunc = func(args *widget.ButtonClickedEventArgs) {
 		r := img.Rect(0, 0, 400, 220)
@@ -99,7 +102,7 @@ func newUI(loader *resource.Loader) *GameUI {
 	return gameUI
 }
 
-func newSettingWindow(loader *resource.Loader) *widget.Window {
+func newSettingWindow(loader *resource.Loader, sliderChangedAction func(float64)) *widget.Window {
 	windowContainer := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(loadNineSlice(loader.LoadImage(assets.ImgFrame).Data, 16, 16)),
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
@@ -207,6 +210,7 @@ func newSettingWindow(loader *resource.Loader) *widget.Window {
 		}),
 		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
 			sliderValue.Label = fmt.Sprintf("%d", args.Current)
+			sliderChangedAction(float64(args.Current))
 		}),
 	)
 	slider.Current = 5
