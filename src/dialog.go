@@ -28,6 +28,7 @@ type Dialog struct {
 	playerName      string
 	playerPortrait  *ebiten.Image
 	textBoxWidth    int
+	textBoxHeight   int
 	text            string
 	dialogPage      *DialogPage
 	speedMultiplier float64
@@ -105,10 +106,10 @@ func (dialog *Dialog) createWidget() {
 	textContiner.AddChild(label)
 
 	_, labelHeight := label.PreferredSize()
-	textBoxHeight := dialog.playerPortrait.Bounds().Dy() - labelHeight - 6
+	dialog.textBoxHeight = dialog.playerPortrait.Bounds().Dy() - labelHeight - 6
 	textFrameImage := loadImageNineSlice(*dialog.textFrameImage)
 	dialog.dialogPage = &DialogPage{
-		textGroups:       GroupText(dialog.textFont, dialog.text, dialog.textBoxWidth, textBoxHeight),
+		textGroups:       GroupText(dialog.textFont, dialog.text, dialog.textBoxWidth, dialog.textBoxHeight),
 		currentPage:      0,
 		currentCharacter: 0,
 	}
@@ -118,9 +119,9 @@ func (dialog *Dialog) createWidget() {
 				widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 					Position:  widget.RowLayoutPositionCenter,
 					MaxWidth:  dialog.textBoxWidth,
-					MaxHeight: textBoxHeight,
+					MaxHeight: dialog.textBoxHeight,
 				}),
-				widget.WidgetOpts.MinSize(dialog.textBoxWidth, textBoxHeight),
+				widget.WidgetOpts.MinSize(dialog.textBoxWidth, dialog.textBoxHeight),
 			),
 		),
 		widget.TextAreaOpts.ScrollContainerOpts(
@@ -221,6 +222,13 @@ func (dialog *Dialog) AdvanceDialog() {
 func (dialog *Dialog) RestartDialog() {
 	dialog.dialogPage.currentPage = 0
 	dialog.dialogPage.currentCharacter = 0
+	lastUpdated = time.Now()
+}
+
+func (dialog *Dialog) SetText(text string) {
+	dialog.dialogPage.currentPage = 0
+	dialog.dialogPage.currentCharacter = 0
+	dialog.dialogPage.textGroups = GroupText(dialog.textFont, text, dialog.textBoxWidth, dialog.textBoxHeight)
 	lastUpdated = time.Now()
 }
 
