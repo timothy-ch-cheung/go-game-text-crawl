@@ -254,8 +254,19 @@ func getPadding(imgNineSlice ImageNineSlice) (int, int) {
 	return xPadding, yPadding
 }
 
+func replaceAfterPosition(input string, position int) string {
+	runes := []rune(input)
+	for i := position; i < len(runes); i++ {
+		if runes[i] != ' ' {
+			runes[i] = '\u00A0'
+		}
+	}
+	return string(runes)
+}
+
 func (dialogPage *DialogPage) GetCurrentText() string {
-	return dialogPage.textGroups[dialogPage.currentPage][:dialogPage.currentCharacter+1]
+	currentPage := dialogPage.textGroups[dialogPage.currentPage]
+	return replaceAfterPosition(currentPage, dialogPage.currentCharacter)
 }
 
 func (dialogPage *DialogPage) IsPageEnd() bool {
