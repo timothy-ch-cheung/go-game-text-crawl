@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	img "image"
 	"image/color"
 	"time"
@@ -276,12 +277,16 @@ func getPadding(imgNineSlice ImageNineSlice) (int, int) {
 
 func replaceAfterPosition(input string, position int) string {
 	runes := []rune(input)
-	for i := position; i < len(runes); i++ {
+	for i := position + 1; i < len(runes); i++ {
 		if runes[i] != ' ' {
 			runes[i] = '\u00A0'
 		}
 	}
 	return string(runes)
+}
+
+func (page DialogPage) String() string {
+	return fmt.Sprintf("Current Page: [%d], Current Character: [%d],\nText Groups: %v", page.currentPage, page.currentCharacter, page.textGroups)
 }
 
 func (dialogPage *DialogPage) GetCurrentText() string {

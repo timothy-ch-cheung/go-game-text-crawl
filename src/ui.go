@@ -14,6 +14,8 @@ import (
 
 const BTN_SIZE = 20
 
+const PLACEHOLDER_TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat"
+
 type GameUI struct {
 	ui            *ebitenui.UI
 	AdvanceDialog func()
@@ -69,7 +71,7 @@ func newUI(loader *resource.Loader) *GameUI {
 		DialogOpts.TitleFont(loader.LoadFont(assets.FontDefault).Face),
 		DialogOpts.TextFont(loader.LoadFont(assets.FontDefault).Face),
 		DialogOpts.TextBoxWith(160),
-		DialogOpts.Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat"),
+		DialogOpts.Text(PLACEHOLDER_TEXT),
 	)
 
 	setTextSpeed := func(value float64) {
@@ -107,7 +109,7 @@ func newUI(loader *resource.Loader) *GameUI {
 
 func newSettingWindow(loader *resource.Loader, setText func(string), setTextSpeed func(float64)) *widget.Window {
 	windowContainer := widget.NewContainer(
-		widget.ContainerOpts.BackgroundImage(loadNineSlice(loader.LoadImage(assets.ImgFrame).Data, 16, 16)),
+		widget.ContainerOpts.BackgroundImage(loadNineSlice(loader.LoadImage(assets.ImgFrameOpaque).Data, 16, 16)),
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Padding(widget.NewInsetsSimple(10)),
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
@@ -150,6 +152,7 @@ func newSettingWindow(loader *resource.Loader, setText func(string), setTextSpee
 				widget.WidgetOpts.LayoutData(widget.RowLayoutData{
 					Position:  widget.RowLayoutPositionCenter,
 					MaxHeight: 150,
+					MaxWidth:  380,
 				}),
 				widget.WidgetOpts.MinSize(380, 140),
 			),
@@ -164,6 +167,7 @@ func newSettingWindow(loader *resource.Loader, setText func(string), setTextSpee
 		),
 		widget.TextAreaOpts.TextPadding(widget.NewInsetsSimple(5)),
 		widget.TextAreaOpts.ControlWidgetSpacing(2),
+		widget.TextAreaOpts.Text(PLACEHOLDER_TEXT),
 	)
 
 	textInput.ChangedEvent.AddHandler(func(args interface{}) {
@@ -227,7 +231,7 @@ func newSettingWindow(loader *resource.Loader, setText func(string), setTextSpee
 	sliderContainer.AddChild(sliderValue)
 
 	var submitHandler widget.ButtonClickedHandlerFunc = func(args *widget.ButtonClickedEventArgs) {
-		setText(textInput.GetText())
+		setText(textarea.GetText())
 		setTextSpeed(float64(slider.Current))
 		window.Close()
 	}

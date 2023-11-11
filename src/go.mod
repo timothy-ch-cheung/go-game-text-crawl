@@ -1,6 +1,6 @@
 module github.com/timothy-ch-cheung/go-game-text-crawl
 
-go 1.21.3
+go 1.18
 
 require github.com/quasilyte/ebitengine-resource v0.5.0
 

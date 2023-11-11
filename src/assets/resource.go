@@ -19,6 +19,7 @@ const (
 	ImgIconRestart
 	ImgIconSubmit
 	ImgFrame
+	ImgFrameOpaque
 	ImgInput
 	ImgSliderTrack
 	ImgSliderBtn
@@ -36,6 +37,7 @@ func RegisterImageResources(loader *resource.Loader) {
 		ImgIconRestart: {Path: "ui/restart-icon.png"},
 		ImgIconSubmit:  {Path: "ui/submit-icon.png"},
 		ImgFrame:       {Path: "ui/frame.png"},
+		ImgFrameOpaque: {Path: "ui/frame-opaque.png"},
 		ImgInput:       {Path: "ui/input.png"},
 		ImgSliderTrack: {Path: "ui/slider-track.png"},
 		ImgSliderBtn:   {Path: "ui/slider-btn.png"},

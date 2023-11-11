@@ -22,10 +22,11 @@ func partitionText(face font.Face, text string, maxWidth int) []string {
 				newLineWidth += wordWidth
 			} else {
 				lines = append(lines, currentLine[:len(currentLine)-1])
-				currentLine = word
+				currentLine = word + " "
 				newLineWidth = wordWidth
 			}
 		}
+		lines = append(lines, currentLine[:len(currentLine)-1])
 	}
 	return lines
 }
@@ -41,7 +42,7 @@ func GroupText(face font.Face, text string, maxWidth int, maxHeight int) []strin
 	maxLines := calculateMaxLines(face, maxHeight)
 	for i := 0; i < len(lines); i += maxLines {
 		end := i + maxLines
-		if end > len(lines) {
+		if end >= len(lines) {
 			end = len(lines)
 		}
 		result = append(result, strings.Join(lines[i:end], " "))
