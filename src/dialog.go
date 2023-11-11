@@ -258,6 +258,7 @@ func (dialog *Dialog) RestartDialog() {
 	dialog.dialogPage.currentPage = 0
 	dialog.dialogPage.currentCharacter = 0
 	dialog.completed = false
+	dialog.pageEndIndicatorGraphic.Hide()
 	lastUpdated = time.Now()
 }
 
