@@ -72,6 +72,7 @@ func newUI(loader *resource.Loader) *GameUI {
 		DialogOpts.TextFont(loader.LoadFont(assets.FontDefault).Face),
 		DialogOpts.TextBoxWith(160),
 		DialogOpts.Text(PLACEHOLDER_TEXT),
+		DialogOpts.PageEndIndicator(loader.LoadImage(assets.ImgPageEnd).Data),
 	)
 
 	setTextSpeed := func(value float64) {

@@ -14,26 +14,31 @@ import (
 const (
 	BASE_SPEED               = 2
 	DEFAULT_SPEED_MULTIPLIER = 5
+	PAGE_END_BLINK_SPEED     = 3
 )
 
 var lastUpdated time.Time
+var lastBlinked time.Time
 
 type Dialog struct {
-	init            *widget.MultiOnce
-	container       *widget.Container
-	dialogImage     *ImageNineSlice
-	textFrameImage  *ImageNineSlice
-	fontColor       color.Color
-	textFont        font.Face
-	playerNameFont  font.Face
-	playerName      string
-	playerPortrait  *ebiten.Image
-	textBoxWidth    int
-	textBoxHeight   int
-	text            string
-	dialogPage      *DialogPage
-	speedMultiplier float64
-	setText         func(string)
+	init                    *widget.MultiOnce
+	container               *widget.Container
+	dialogImage             *ImageNineSlice
+	textFrameImage          *ImageNineSlice
+	fontColor               color.Color
+	textFont                font.Face
+	playerNameFont          font.Face
+	playerName              string
+	playerPortrait          *ebiten.Image
+	textBoxWidth            int
+	textBoxHeight           int
+	text                    string
+	dialogPage              *DialogPage
+	speedMultiplier         float64
+	setText                 func(string)
+	pageEndIndicator        *ebiten.Image
+	pageEndIndicatorGraphic *HideableGraphic
+	completed               bool
 }
 
 type DialogOpt func(dialog *Dialog)
@@ -74,6 +79,10 @@ func (dialog *Dialog) createWidget() {
 	xPadding, yPadding := getPadding(*dialog.dialogImage)
 
 	dialog.container = widget.NewContainer(
+		widget.ContainerOpts.Layout(widget.NewStackedLayout()),
+	)
+
+	mainDialog := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionHorizontal),
 			widget.RowLayoutOpts.Padding(widget.Insets{
@@ -88,9 +97,10 @@ func (dialog *Dialog) createWidget() {
 			widget.WidgetOpts.MinSize(dialog.textBoxWidth+dialog.playerPortrait.Bounds().Dx(), 50),
 		),
 	)
+	dialog.container.AddChild(mainDialog)
 
 	graphic := widget.NewGraphic(widget.GraphicOpts.Image(dialog.playerPortrait))
-	dialog.container.AddChild(graphic)
+	mainDialog.AddChild(graphic)
 
 	textContiner := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
@@ -99,7 +109,7 @@ func (dialog *Dialog) createWidget() {
 			widget.RowLayoutOpts.Spacing(2),
 		)),
 	)
-	dialog.container.AddChild(textContiner)
+	mainDialog.AddChild(textContiner)
 
 	label := widget.NewLabel(
 		widget.LabelOpts.Text(dialog.playerName, dialog.playerNameFont, &widget.LabelColor{Idle: dialog.fontColor}),
@@ -140,6 +150,22 @@ func (dialog *Dialog) createWidget() {
 	dialog.setText = func(text string) {
 		textArea.SetText(text)
 	}
+
+	pageEndContainer := widget.NewContainer(widget.ContainerOpts.Layout(widget.NewAnchorLayout()))
+	dialog.container.AddChild(pageEndContainer)
+
+	dialog.pageEndIndicatorGraphic = NewHideableGraphic(
+		HideableGraphicOpts.Graphic(dialog.pageEndIndicator),
+		HideableGraphicOpts.Padding(widget.NewInsetsSimple(2)),
+		HideableGraphicOpts.ContainerOpts(
+			widget.ContainerOpts.WidgetOpts(widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				HorizontalPosition: widget.AnchorLayoutPositionEnd,
+				VerticalPosition:   widget.AnchorLayoutPositionEnd,
+			}),
+			),
+		))
+	dialog.pageEndIndicatorGraphic.Hide()
+	pageEndContainer.AddChild(dialog.pageEndIndicatorGraphic)
 }
 
 ////////////////////////////
@@ -200,6 +226,12 @@ func (option DialogOptions) Text(text string) DialogOpt {
 	}
 }
 
+func (option DialogOptions) PageEndIndicator(image *ebiten.Image) DialogOpt {
+	return func(dialog *Dialog) {
+		dialog.pageEndIndicator = image
+	}
+}
+
 ///////////////////////////
 // Active Widget Options //
 ///////////////////////////
@@ -211,13 +243,15 @@ func (dialog *Dialog) SetSpeedMultiplier(multiplier float64) {
 func (dialog *Dialog) AdvanceDialog() {
 	if !dialog.dialogPage.IsPageEnd() {
 		dialog.dialogPage.currentCharacter = len(dialog.dialogPage.GetCurrentText()) - 2
-	} else if !dialog.dialogPage.IsDialogEnd() {
+	} else if !dialog.dialogPage.IsLastPage() {
 		dialog.dialogPage.currentCharacter = 0
 		dialog.dialogPage.currentPage += 1
 		lastUpdated = time.Now()
 	} else {
 		dialog.setText("")
+		dialog.completed = true
 	}
+	dialog.pageEndIndicatorGraphic.Hide()
 }
 
 func (dialog *Dialog) RestartDialog() {
@@ -259,6 +293,15 @@ func (dialog *Dialog) Render(screen *ebiten.Image, def widget.DeferredRenderFunc
 		dialog.setText(dialog.dialogPage.GetDisplayedText())
 		lastUpdated = now
 	}
+	if dialog.dialogPage.IsPageEnd() && !dialog.completed && now.Sub(lastBlinked).Seconds() > 1/(float64(PAGE_END_BLINK_SPEED)) {
+		if dialog.pageEndIndicatorGraphic.IsHidden() {
+			dialog.pageEndIndicatorGraphic.Show()
+		} else {
+			dialog.pageEndIndicatorGraphic.Hide()
+		}
+		lastBlinked = now
+	}
+
 	dialog.init.Do()
 	dialog.container.Render(screen, def)
 }
@@ -302,6 +345,6 @@ func (dialogPage *DialogPage) IsPageEnd() bool {
 	return dialogPage.currentCharacter == len(dialogPage.textGroups[dialogPage.currentPage])-1
 }
 
-func (dialogPage *DialogPage) IsDialogEnd() bool {
+func (dialogPage *DialogPage) IsLastPage() bool {
 	return dialogPage.currentPage == len(dialogPage.textGroups)-1
 }
