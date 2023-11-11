@@ -257,6 +257,7 @@ func (dialog *Dialog) AdvanceDialog() {
 func (dialog *Dialog) RestartDialog() {
 	dialog.dialogPage.currentPage = 0
 	dialog.dialogPage.currentCharacter = 0
+	dialog.completed = false
 	lastUpdated = time.Now()
 }
 
