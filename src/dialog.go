@@ -265,6 +265,8 @@ func (dialog *Dialog) RestartDialog() {
 func (dialog *Dialog) SetText(text string) {
 	dialog.dialogPage.currentPage = 0
 	dialog.dialogPage.currentCharacter = 0
+	dialog.completed = false
+	dialog.pageEndIndicatorGraphic.Hide()
 	dialog.dialogPage.textGroups = GroupText(dialog.textFont, text, dialog.textBoxWidth, dialog.textBoxHeight)
 	lastUpdated = time.Now()
 }
