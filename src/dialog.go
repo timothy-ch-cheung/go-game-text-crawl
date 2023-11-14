@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"time"
 
+	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
 	"golang.org/x/image/font"
@@ -24,7 +25,6 @@ type Dialog struct {
 	init                    *widget.MultiOnce
 	container               *widget.Container
 	dialogImage             *ImageNineSlice
-	textFrameImage          *ImageNineSlice
 	fontColor               color.Color
 	textFont                font.Face
 	playerNameFont          font.Face
@@ -118,7 +118,6 @@ func (dialog *Dialog) createWidget() {
 
 	_, labelHeight := label.PreferredSize()
 	dialog.textBoxHeight = dialog.playerPortrait.Bounds().Dy() - labelHeight - 6
-	textFrameImage := loadImageNineSlice(*dialog.textFrameImage)
 	dialog.dialogPage = &DialogPage{
 		textGroups:       GroupText(dialog.textFont, dialog.text, dialog.textBoxWidth, dialog.textBoxHeight),
 		currentPage:      0,
@@ -137,8 +136,8 @@ func (dialog *Dialog) createWidget() {
 		),
 		widget.TextAreaOpts.ScrollContainerOpts(
 			widget.ScrollContainerOpts.Image(&widget.ScrollContainerImage{
-				Idle: textFrameImage,
-				Mask: textFrameImage,
+				Idle: image.NewNineSliceColor(color.Transparent),
+				Mask: image.NewNineSliceColor(color.Opaque),
 			}),
 		),
 		widget.TextAreaOpts.Text(dialog.dialogPage.GetCurrentText()),
@@ -205,12 +204,6 @@ func (option DialogOptions) TextFont(textFont font.Face) DialogOpt {
 func (option DialogOptions) DialogImage(dialogImage *ImageNineSlice) DialogOpt {
 	return func(dialog *Dialog) {
 		dialog.dialogImage = dialogImage
-	}
-}
-
-func (option DialogOptions) TextFrameImage(dialogImage *ImageNineSlice) DialogOpt {
-	return func(dialog *Dialog) {
-		dialog.textFrameImage = dialogImage
 	}
 }
 
