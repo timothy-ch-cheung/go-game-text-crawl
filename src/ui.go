@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/ebitenui/ebitenui/image"
 	img "image"
 	"image/color"
 
@@ -168,6 +169,19 @@ func newSettingWindow(loader *resource.Loader, setText func(string), setTextSpee
 		widget.TextAreaOpts.TextPadding(widget.NewInsetsSimple(5)),
 		widget.TextAreaOpts.ControlWidgetSpacing(2),
 		widget.TextAreaOpts.Text(PLACEHOLDER_TEXT),
+		widget.TextAreaOpts.SliderOpts(
+			widget.SliderOpts.Images(
+				&widget.SliderTrackImage{
+					Idle:  image.NewNineSliceColor(color.NRGBA{200, 200, 200, 255}),
+					Hover: image.NewNineSliceColor(color.NRGBA{200, 200, 200, 255}),
+				},
+				&widget.ButtonImage{
+					Idle:    image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
+					Hover:   image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
+					Pressed: image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
+				},
+			),
+		),
 	)
 
 	textInput.ChangedEvent.AddHandler(func(args interface{}) {

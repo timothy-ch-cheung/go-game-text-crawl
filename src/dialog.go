@@ -144,6 +144,19 @@ func (dialog *Dialog) createWidget() {
 		widget.TextAreaOpts.FontFace(dialog.textFont),
 		widget.TextAreaOpts.FontColor(dialog.fontColor),
 		widget.TextAreaOpts.TextPadding(widget.NewInsetsSimple(2)),
+		widget.TextAreaOpts.SliderOpts(
+			widget.SliderOpts.Images(
+				&widget.SliderTrackImage{
+					Idle:  image.NewNineSliceColor(color.NRGBA{200, 200, 200, 255}),
+					Hover: image.NewNineSliceColor(color.NRGBA{200, 200, 200, 255}),
+				},
+				&widget.ButtonImage{
+					Idle:    image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
+					Hover:   image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
+					Pressed: image.NewNineSliceColor(color.NRGBA{255, 100, 100, 255}),
+				},
+			),
+		),
 	)
 	textContiner.AddChild(textArea)
 	dialog.setText = func(text string) {
